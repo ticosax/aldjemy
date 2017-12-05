@@ -13,8 +13,9 @@ from .table import get_django_models
 
 def get_session(alias='default'):
     connection = connections[alias]
-    session = orm.sessionmaker(bind=get_engine(alias))
-    connection.sa_session = session()
+    if not hasattr(connection, 'sa_session'):
+        session = orm.sessionmaker(bind=get_engine(alias))
+        connection.sa_session = session()
     return connection.sa_session
 
 
@@ -102,7 +103,7 @@ def _extract_model_attrs(model, sa_models):
 def prepare_models():
 
     tables = get_tables()
-    models = [model for model in get_django_models() if not model._meta.proxy]
+    models = get_django_models()
 
     sa_models_by_django_models = getattr(Cache, 'sa_models', {})
 
